@@ -1,0 +1,9 @@
+---
+
+is_debug: true
+jwt:
+  secret: dumb_secret
+listen:
+  type: port
+  bind_ip: localhost
+  port: 5000

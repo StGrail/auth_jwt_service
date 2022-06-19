@@ -1,0 +1,214 @@
+openapi: 3.0.0
+info:
+  title: JWT token auth API
+  version: "1"
+
+tags:
+  - name: JWT auth service
+    description: "JWT auth service"
+  - name: Authorization
+components:
+  headers:
+    RequestSuccess:
+      schema:
+        type: string
+
+  responses:
+    minimalResponse:
+      description: "OK"
+
+    minimalResponseWithHeader:
+      headers:
+        X-Request-Success:
+          schema:
+            type: string
+      description: "OK"
+
+    NotFound:
+      description: Not Found
+      headers:
+        X-Request-Success:
+          schema:
+            type: boolean
+          description: "false"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    BadRequest:
+      description: Bad Request
+      headers:
+        X-Request-Success:
+          schema:
+            type: boolean
+          description: "false"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    Unauthorized:
+      description: Unauthorized
+      headers:
+        X-Request-Success:
+          schema:
+            type: boolean
+          description: "false"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    Conflict:
+      description: Resource Already Exist
+      headers:
+        X-Request-Success:
+          schema:
+            type: boolean
+          description: "false"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    ImaTeapot:
+      description: Code Execution Error
+      headers:
+        X-Request-Success:
+          schema:
+            type: boolean
+          description: "false"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    InternalError:
+      description: Internal Server Error
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error_code:
+          type: string
+        developer_message:
+          type: string
+      required:
+        - error_code
+        - message
+        - developer_message
+
+
+    Token:
+      type: object
+      properties:
+        token:
+          type: string
+        refresh_token:
+          type: string
+
+    User:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    CreateUser:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        email:
+          type: string
+
+paths:
+  /api/auth:
+    post:
+      summary: "Авторизация по юзернейму и паролю"
+      tags:
+        - Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      description: "Авторизация пользователя, получение токена доступа к методам API"
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+        '401':
+          $ref: "#/components/responses/Unauthorized"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '418':
+          $ref: "#/components/responses/ImaTeapot"
+        '500':
+          $ref: "#/components/responses/InternalError"
+    put:
+      summary: "Получение доступа с обновлением токена"
+      tags:
+        - Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/Token"
+                - required:
+                    - refresh_token
+      description: "Авторизация пользователя, обмен refresh_token на access_token для доступа к методам API"
+      responses:
+        '201':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+        '401':
+          $ref: "#/components/responses/Unauthorized"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '418':
+          $ref: "#/components/responses/ImaTeapot"
+        '500':
+          $ref: "#/components/responses/InternalError"
+  /api/users:
+    post:
+      summary: "Создание нового пользователя"
+      tags:
+        - Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/CreateUser"
+      description: "Авторизация пользователя, получение токена доступа к методам API"
+      responses:
+        '201':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+        '401':
+          $ref: "#/components/responses/Unauthorized"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '418':
+          $ref: "#/components/responses/ImaTeapot"
+        '500':
+          $ref: "#/components/responses/InternalError"
